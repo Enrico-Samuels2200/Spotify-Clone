@@ -1,8 +1,12 @@
 const express = require('express');
 const router = express.Router();
 
-router.get('/sign-up', (req, res) => {
-    
+// Request mongoose models
+const { new_user } = require('../models/user_model');
+
+router.post('/sign-up', (req, res) => {
+
+    res.send()
 });
 
 
