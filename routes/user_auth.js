@@ -6,35 +6,37 @@ const bcrypt = require('bcryptjs');
 // Request mongoose models
 const { user_account, login_account } = require('../models/user_model');
 
+// Get Date
 router.post('/sign-up', async (req, res) => {
-
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashed_password = await bcrypt.hash(req.body.password, salt)
 
-    const email_exist = await user_account.findOne({ email: req.body.email });
-    const user_exist = await user_account.findOne({ username: req.body.username });
+        const email_exist = await user_account.findOne({ email: req.body.email });
+        const user_exist = await user_account.findOne({ username: req.body.username });
 
-    if (email_exist) return res.status(400).send("Email already exist.");
+    // Validates if name and email entered is already connected to an account.
+    if (email_exist) return res.status(400).send("Email already exist.") ;
     if (user_exist) return res.status(400).send("Username already taken");
 
     // Create new user
     const client_data = new user_account({
         email: req.body.email,
-        name: req.body.usernname,
-        password: hashed_password
+        username: req.body.username,
+        password: hashed_password,
+        date_created: req.body.date_created
     });
 
     // Returns a promise
     try {
+        console.log(client_data)
         await client_data.save();
         res.send("Account successfully created.");
     }
     catch (err) {
-        res.json({ message: err });
+        res.send("An error occured");
     };
 });
-
 
 router.post('/login', async (req, res) => {
 
