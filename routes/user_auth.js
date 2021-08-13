@@ -6,14 +6,25 @@ const bcrypt = require('bcryptjs');
 // Request mongoose models
 const { user_account, login_account } = require('../models/user_model');
 
-// Get Date
+format_date = () => {
+    let new_date = new Date(),
+        month = '' + (new_date.getMonth() + 1),
+        day = '' + new_date.getDate(),
+        year = new_date.getFullYear();
+
+    if (month.length < 2) month = `0${month}`;
+    if (day.length < 2) day = `0${day}`;
+
+    return [day, month, year].join('/');
+}
+
 router.post('/sign-up', async (req, res) => {
     // Hash password
     const salt = await bcrypt.genSalt(10);
-    const hashed_password = await bcrypt.hash(req.body.password, salt)
+    const hashed_password = await bcrypt.hash(req.body.password, salt);
 
-        const email_exist = await user_account.findOne({ email: req.body.email });
-        const user_exist = await user_account.findOne({ username: req.body.username });
+    const email_exist = await user_account.findOne({ email: req.body.email });
+    const user_exist = await user_account.findOne({ username: req.body.username });
 
     // Validates if name and email entered is already connected to an account.
     if (email_exist) return res.status(400).send("Email already exist.") ;
@@ -24,7 +35,7 @@ router.post('/sign-up', async (req, res) => {
         email: req.body.email,
         username: req.body.username,
         password: hashed_password,
-        date_created: req.body.date_created
+        date_created: format_date()
     });
 
     // Returns a promise
@@ -40,16 +51,19 @@ router.post('/sign-up', async (req, res) => {
 
 router.post('/login', async (req, res) => {
 
-    const client_data = new login_account({
-        _id: user_id,
+    const client_data = {
         email: req.body.email,
         password: req.body.password
-    });
+    };
 
-    const user = await login_account.findOne({ email: req.body.email });
+    // Looks for user's email
+    const user = await user_account.findOne({ email: req.body.email });
+    let validPassword = false;
 
     //const validPassword = await bcrypt.compare(req.body.password, user.password);
-    const validPassword = await bcrypt.compare(req.body.password, user.password);
+    if (user != null) {
+        validPassword = await bcrypt.compare(req.body.password, user.password);
+    }
 
     // If the users email is not found then return error
     if (!user) return res.status(400).send("Invalid email or password entered.");
